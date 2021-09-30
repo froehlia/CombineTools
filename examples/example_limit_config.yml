@@ -1,0 +1,14 @@
+limit_file_name: 'examples/example_limits.csv'
+expected_title: 'combined limit'
+
+theory_file_name: 'examples/example_theory.csv'
+theory_title: 'Theory curve'
+b_theory_err: True
+
+compare_graphs:
+  - {'file':'examples/example_compare1.csv', 'title': 'one limit', 'color': 862}
+  - {'file':'examples/example_compare2.csv', 'title': 'another limit', 'color': 617}
+
+b_logy: True
+x_axis_title: 'mass [GeV]'
+y_axis_title: '#sigma(my process)'
