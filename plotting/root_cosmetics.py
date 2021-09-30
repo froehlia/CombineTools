@@ -1,34 +1,67 @@
 import ROOT
 def SetupPad(): # -> TPad
     """
-    Create a default TPad for drawing plots
+    Create a default TPad for drawing plots (adapted from SFramePlotter)
 
     coordinates:
        |             |
     y3 +-------------+
-       |     pad1    |
+       |     pad     |
     y2 |-------------|
-       |     rp1     |
+       |     rpad    |
     y1 +-------------+
        x1            x2
 
     """
     yplot = 0.65
-    yratio = 0.34
+    yratio = 0.33
     y3 = 0.99
     y2 = y3-yplot
     y1 = y2-yratio
     x1 = 0.01
     x2 = 0.99
 
-    m_pad = ROOT.TPad("pad", "plot pad", x1, y1, x2, y3)
+    pad = ROOT.TPad("pad", "plot pad", x1, y1, x2, y3)
+    pad.SetTopMargin(0.05)
+    pad.SetBottomMargin(0.12)
+    pad.SetLeftMargin(0.14)
+    pad.SetRightMargin(0.05)
 
-    m_pad.SetTopMargin(0.05);
-    m_pad.SetBottomMargin(0.12);
-    m_pad.SetLeftMargin(0.14);
-    m_pad.SetRightMargin(0.05);
+    return pad
 
-    return m_pad
+def SetupRatioPad():
+    yplot = 0.65
+    yratio = 0.33
+    y3 = 0.99
+    y2 = y3-yplot
+    y1 = y2-yratio
+    x1 = 0.01
+    x2 = 0.99
+
+    rpad = ROOT.TPad("rpad", "ratio pad", x1, y1, x2, y2)
+    rpad.SetTopMargin(0.0)
+    rpad.SetBottomMargin(0.35)
+    rpad.SetLeftMargin(0.19)
+    rpad.SetRightMargin(0.05)
+
+    return rpad
+
+def SetupRatioPadTop():
+    yplot = 0.65
+    yratio = 0.33
+    y3 = 0.99
+    y2 = y3-yplot
+    y1 = y2-yratio
+    x1 = 0.01
+    x2 = 0.99
+
+    pad = ROOT.TPad("pad", "plot pad", x1, y2, x2, y3)
+    pad.SetTopMargin(0.065)
+    pad.SetBottomMargin(0.0)
+    pad.SetLeftMargin(0.19)
+    pad.SetRightMargin(0.05)
+
+    return pad
 
 def draw_texts(pad, config):
     """
