@@ -1,7 +1,7 @@
 import ROOT
 import root_cosmetics as cosmetics
-import csv
-import yaml
+import utils
+import pandas as pd
 import sys
 
 def find_intersection(g1, g2): # -> float # can put this somewhere else?
@@ -34,12 +34,9 @@ def get_graph(file_name): # -> TGraph
     returns TGraph
     """
     g = ROOT.TGraph()
-    with open(file_name) as csvfile:
-        i = 0
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            g.SetPoint(i,float(row['mass']),float(row['central']))
-            i +=1
+    df = pd.read_csv(file_name)
+    for i, row in df.iterrows():
+        g.SetPoint(i,row['mass'],row['central'])
     return g
 
 
@@ -49,30 +46,15 @@ def get_error_graph(file_name): # -> TGraphErrors
     returns TGraphErrors
     """
     g = ROOT.TGraphErrors()
-    with open(file_name) as csvfile:
-        i = 0
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            g.SetPoint(i,float(row['mass']),float(row['central']))
-            g.SetPointError(i,0.0,float(row['err']))
-            i += 1
+    df = pd.read_csv(file_name)
+    for i, row in df.iterrows():
+        g.SetPoint(i,row['mass'],row['central'])
+        g.SetPointError(i,0.0,row['err'])
     return g
-
-def get_config(config_file): # -> dict # can be moved to utils
-    """
-    read configuration from file
-    """
-    with open(config_file, 'r') as stream:
-        try:
-            config = yaml.safe_load(stream)
-            return config
-        except yaml.YAMLError as exc:
-            print(exc)
-            raise Exception("{}: Unable to parse config file!".format(sys.argv[0]))
 
 # --- Settings
 # note: this is not very elegant, but I was lazy coding something nicer, sorry ...
-config = get_config(sys.argv[1])
+config = utils.get_config(sys.argv[1])
 
 limit_file_name = config.get('limit_file_name')                                 # name of the observed and expected limits input file
 theory_file_name = config.get('theory_file_name')                               # name of the theory prediction input file
@@ -95,17 +77,14 @@ g_theory = ROOT.TGraphErrors()              # theory prediction
 g_compares = []                             # list holding expect limits for comparison
 
 # ---  Read data from csv
-i = 0
-with open(limit_file_name) as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        g_expected.SetPoint(i,float(row['mass']),float(row['central']))
-        g_observed.SetPoint(i,float(row['mass']),float(row['observed']))
-        g_expected_68.SetPoint(i,float(row['mass']),float(row['central']))
-        g_expected_68.SetPointError(i,0.,0.,float(row['low_68']),float(row['high_68']))
-        g_expected_95.SetPoint(i,float(row['mass']),float(row['central']))
-        g_expected_95.SetPointError(i,0.,0.,float(row['low_95']),float(row['high_95']))
-        i += 1
+df = pd.read_csv(limit_file_name)
+for i, row in df.iterrows():
+    g_expected.SetPoint(i,row['mass'],row['central'])
+    g_observed.SetPoint(i,row['mass'],row['observed'])
+    g_expected_68.SetPoint(i,row['mass'],row['central'])
+    g_expected_68.SetPointError(i,0.,0.,row['low_68'],row['high_68'])
+    g_expected_95.SetPoint(i,row['mass'],row['central'])
+    g_expected_95.SetPointError(i,0.,0.,row['low_95'],row['high_95'])
 
 # --- Plotting
 c = ROOT.TCanvas('limit_canvas','limit_canvas',600,600)
@@ -139,7 +118,7 @@ xmax = ROOT.Double(0)
 ymin = ROOT.Double(0)
 ymax = ROOT.Double(0)
 g_expected.GetPoint(0, xmin,ymin);
-g_expected.GetPoint(i-1, xmax,ymax);
+g_expected.GetPoint(df.shape[0]-1, xmax,ymax);
 ymax = max(10., g_expected.GetHistogram().GetMaximum()) * 3;
 ymin = min(0.001, g_expected.GetHistogram().GetMinimum()) * 0.33;
 # add theory curve if given
@@ -164,7 +143,7 @@ if (theory_file_name != ''):
     # draw
     g_theory.Draw(theory_draw_options)
     # create theory graph legend
-    pred_leg = ROOT.TLegend(0.55,0.87,0.95,0.92) # this might be a problem ...
+    pred_leg = ROOT.TLegend(0.55,0.87,0.95,0.92)
     pred_leg.SetBorderSize(0)
     pred_leg.SetFillStyle(0)
     pred_leg.SetTextSize(0.033)
@@ -199,6 +178,7 @@ if len(compare_graphs)> 0:
         g_compare.SetLineColor(compare_graphs[j]['color'])
         g_compare.Draw('SAME')
         exp_leg.AddEntry(g_compare, compare_graphs[j]['title'], 'l')
+        g_compares.append(g_compare)
     exp_leg.AddEntry(g_expected, expected_title, 'l')
     exp_leg.AddEntry(g_expected_68, '68% expected', 'f')
     exp_leg.AddEntry(g_expected_95, '95% expected', 'f')
