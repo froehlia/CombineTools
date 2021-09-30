@@ -11,3 +11,11 @@ An example for the input files is found in `examples/`:
 ```
 python plotting/limitPlot.py examples/example_limit_config.yml
 ```
+
+## Nuisance Pulls
+Create nuisance pull plots with the `plotting/nuisance_plot.py` script.
+
+Example:
+```
+python plotting/nuisance_plot.py examples/example_nuisance_pull.csv
+```
